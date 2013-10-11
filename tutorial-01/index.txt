@@ -244,6 +244,8 @@ Length: XXX
 The use of the +'home'+ link relation is not required by the Cj sepcifications, but it is a handy one to use. This
 is a link that points to the root of the service. It allows client applications to locate the initial starting point
 of the service not matter where they are in the workflow of any Cj application.
+
+The +'home'+ link relation value is described in the http://microformats.org/wiki/rel-home[microformats wiki] and is a proposed link relation value for HTML5.
 ===========================
 
 So that's a solid start. We have a server that returns a valid (but currently rather empty) Cj response whenever
