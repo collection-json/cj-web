@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
 <meta name="generator" content="AsciiDoc 8.6.4" />
-<title>Collection+JSON Tutorials</title>
+<title>Collection+JSON Tutorials : Generating a Cj Response from a Server</title>
 <style type="text/css">
 /* Sans-serif font. */
 h1, h2, h3, h4, h5, h6,
@@ -433,7 +433,7 @@ span.small { font-size: 0.6em; }
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
-window.onload = function(){asciidoc.footnotes();}
+window.onload = function(){asciidoc.footnotes(); asciidoc.toc(2);}
 var asciidoc = {  // Namespace.
 
 /////////////////////////////////////////////////////////////////////
@@ -567,13 +567,16 @@ footnotes: function () {
 </head>
 <body class="article">
 <div id="header">
-<h1>Collection+JSON Tutorials</h1>
+<h1>Collection+JSON Tutorials : Generating a Cj Response from a Server</h1>
 <span id="author">Mike Amundsen</span><br />
 <span id="email"><tt>&lt;<a href="mailto:mamund@yahoo.com">mamund@yahoo.com</a>&gt;</tt></span><br />
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
 </div>
 <div id="content">
-<div class="sect1">
-<h2 id="_generating_a_cj_response_from_a_server">Generating a Cj Response from a Server</h2>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph"><p>In this short tutorial you&#8217;ll get a <em>walk-through</em> (in nodejs) of how to
 generate a valid Collection+JSON (Cj) response from a server. This is a
@@ -607,8 +610,11 @@ submit PRs to help improve the tutorials.</p></div>
 </td>
 </tr></table>
 </div>
-<div class="sect2">
-<h3 id="_before_we_get_started">Before We Get Started</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_before_we_get_started">1. Before We Get Started</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>First, since this tutorial is written in <a href="http://nodejs.org">nodejs</a>, there is a bit
 of housekeeping code that is needed to get the project up and running. Below
 is a shell script that handles the basics of a small nodejs server application.</p></div>
@@ -654,8 +660,8 @@ Servers should always output valid Cj resaponses using this content-type identif
 </tr></table>
 </div>
 <div class="paragraph"><p>The code above sets up a listener on the available port and responds with an empty object for now.</p></div>
-<div class="sect3">
-<h4 id="_adding_some_friends">Adding some Friends</h4>
+<div class="sect2">
+<h3 id="_adding_some_friends">1.1. Adding some Friends</h3>
 <div class="paragraph"><p>The next step is to get some data to work with. For our example, we&#8217;ll use a list of friends (name, email, and blog address).
 To keep things simple, we&#8217;ll store the friends in memory. Usually this kind of data would be in some external
 storage such as a file system, local database or remote store. But, in our case, the in-memory data will work
@@ -734,8 +740,10 @@ a valid Cj response skeleton, rendering data as valid Cj <tt>items</tt>, and the
 <tt>template</tt>.</p></div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_part_1_the_cj_skeleton">Part 1: The Cj Skeleton</h3>
+</div>
+<div class="sect1">
+<h2 id="_the_cj_skeleton">2. The Cj Skeleton</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>While it&#8217;s not a requirement, setting up the basic <em>skeleton</em> of a valid Cj response is a good idea.
 This is the output that is used for every Cj response and will come in handy as a guide or starter template when responding to requests.</p></div>
 <div class="paragraph"><p>Refering to the <a href="http://amundsen.com/media-types/collection/format/#objects-collection">Collection+JSON documentation</a>,
@@ -833,8 +841,10 @@ of the service not matter where they are in the workflow of any Cj application.<
 <div class="paragraph"><p>So that&#8217;s a solid start. We have a server that returns a valid (but currently rather empty) Cj response whenever
 a client make a request. Now it&#8217;s time to build up the rest of the representation.</p></div>
 </div>
-<div class="sect2">
-<h3 id="_part_2_adding_items">Part 2: Adding Items</h3>
+</div>
+<div class="sect1">
+<h2 id="_adding_items">3. Adding Items</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>Once the basic skeleton is working, you can add items to the response
 representation. Typically these are your primary data elements (or objects)
 that you wish to return to the requesting client. It doesn&#8217;t matter how (or where)
@@ -964,8 +974,10 @@ Length: XXX
 <div class="paragraph"><p>Now that we have the server rendering valid <tt>items</tt>, we can turn to some optional sections in a Cj response:
 <tt>queries</tt> and the <tt>template</tt>.</p></div>
 </div>
-<div class="sect2">
-<h3 id="_part_3_adding_queries">Part 3: Adding Queries</h3>
+</div>
+<div class="sect1">
+<h2 id="_adding_queries">4. Adding Queries</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>Optionally, you can add <tt>queries</tt> to your response. These are machine-readable
 instructions on how a client application can fashion read-only query requests
 and send them to the server. These instructions can be as simple as a <tt>rel</tt>
@@ -1120,8 +1132,10 @@ Length: XXX
 read-only requests to the server. But what if we want to tell clients that they can create new <tt>items</tt> and/or edit the
 existing <tt>items</tt>? For that, we need to add a Write Template to the response.</p></div>
 </div>
-<div class="sect2">
-<h3 id="_part_4_adding_a_write_template">Part 4: Adding a Write Template</h3>
+</div>
+<div class="sect1">
+<h2 id="_adding_a_write_template">5. Adding a Write Template</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>Another optional portion of a valid Cj response is the <tt>template</tt> element. This is a machine-readable set of instructions
 on how to craft a valid POST (create) or PUT (update) request to the server. The rules for writing data to servers using
 Cj are very similar to the rules for the <a href="http://tools.ietf.org/html/rfc5023">Atom Publishling Protocol (RFC5023)</a>.
@@ -1281,8 +1295,8 @@ The <tt>template</tt> object
 </p>
 </li>
 </ol></div>
-<div class="sect3">
-<h4 id="_but_what_if_there_is_only_one_tt_item_tt">But What if there is only One <tt>Item</tt>?</h4>
+<div class="sect2">
+<h3 id="_but_what_if_there_is_only_one_tt_item_tt">5.1. But What if there is only One <tt>Item</tt>?</h3>
 <div class="paragraph"><p>It is important to keep in mind that <strong>all</strong> Cj responses are sent as <em>collections</em>. There is no special representation for
 responses that contain only one <tt>item</tt>. For example, if a client application activated the <tt>href</tt> property for the
 first <tt>item</tt> in the list (<a href="http://localhost:1337/mildred">http://localhost:1337/mildred</a>), the server should response should look like this:</p></div>
@@ -1356,8 +1370,10 @@ Length: XXX
 <div class="paragraph"><p>There is one more important part of a valid Cj server response to cover in this tutorial: the <tt>error</tt> object.</p></div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_part_5_reporting_errors_to_the_client">Part 5: Reporting Errors to the Client</h3>
+</div>
+<div class="sect1">
+<h2 id="_reporting_errors_to_the_client">6. Reporting Errors to the Client</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>In cases where the client has sent an invalid request or the server has a
 problem handling the request, you can return a Cj response with an <tt>error</tt>
 element. This is a standard way to communicate error details (beyond the
@@ -1408,8 +1424,10 @@ Length: XXX
 It is up to the server to decide which elements will be returned. It is the client&#8217;s responsibility to make sure to
 look for, and recognize, the <tt>error</tt> object when it appears in a response.</p></div>
 </div>
-<div class="sect2">
-<h3 id="_summary">Summary</h3>
+</div>
+<div class="sect1">
+<h2 id="_summary">7. Summary</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>In this tutorial you learned how a server can create a valid Cj response by working through a step-by-step process
 that includes:</p></div>
 <div class="ulist"><ul>
@@ -1442,11 +1460,10 @@ Reporting errors to the client using the Cj <tt>error</tt> object.
 </div>
 </div>
 </div>
-</div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-10-11 18:08:11 EDT
+Last updated 2013-10-11 19:32:46 EDT
 </div>
 </div>
 </body>

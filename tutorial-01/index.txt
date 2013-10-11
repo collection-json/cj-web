@@ -1,8 +1,11 @@
-= Collection+JSON Tutorials =
+////
+2913-10 (mamund) : source for tutorial article
+////
+
+= Collection+JSON Tutorials : Generating a Cj Response from a Server =
 :Author: Mike Amundsen
 :Email: mamund@yahoo.com
 
-== Generating a Cj Response from a Server ==
 In this short tutorial you'll get a 'walk-through' (in nodejs) of how to
 generate a valid Collection+JSON (Cj) response from a server. This is a 
 very simple example that leaves out a number of functional elements of the 
@@ -27,8 +30,7 @@ http://github.com[GitHub]. Feel free to clone the project, register issues, and
 submit PRs to help improve the tutorials. 
 =================
 
-
-=== Before We Get Started ===
+== Before We Get Started ==
 First, since this tutorial is written in http://nodejs.org[nodejs], there is a bit
 of housekeeping code that is needed to get the project up and running. Below
 is a shell script that handles the basics of a small nodejs server application.
@@ -71,7 +73,7 @@ Servers should always output valid Cj resaponses using this content-type identif
 
 The code above sets up a listener on the available port and responds with an empty object for now. 
 
-==== Adding some Friends ====
+=== Adding some Friends ===
 The next step is to get some data to work with. For our example, we'll use a list of friends (name, email, and blog address).
 To keep things simple, we'll store the friends in memory. Usually this kind of data would be in some external
 storage such as a file system, local database or remote store. But, in our case, the in-memory data will work
@@ -151,7 +153,7 @@ Now we have enough starter material in nodejs to focus on the Cj-specific aspect
 a valid Cj response skeleton, rendering data as valid Cj +items+, and the optional rendering of +queries+ and a
 +template+.
 
-=== Part 1: The Cj Skeleton ===
+== The Cj Skeleton ==
 While it's not a requirement, setting up the basic 'skeleton' of a valid Cj response is a good idea.
 This is the output that is used for every Cj response and will come in handy as a guide or starter template when responding to requests.
 
@@ -247,7 +249,7 @@ of the service not matter where they are in the workflow of any Cj application.
 So that's a solid start. We have a server that returns a valid (but currently rather empty) Cj response whenever
 a client make a request. Now it's time to build up the rest of the representation.
 
-=== Part 2: Adding Items ===
+== Adding Items ==
 Once the basic skeleton is working, you can add items to the response
 representation. Typically these are your primary data elements (or objects)
 that you wish to return to the requesting client. It doesn't matter how (or where)
@@ -382,7 +384,7 @@ Length: XXX
 Now that we have the server rendering valid +items+, we can turn to some optional sections in a Cj response:
 +queries+ and the +template+.
 
-=== Part 3: Adding Queries ===
+== Adding Queries ==
 Optionally, you can add +queries+ to your response. These are machine-readable
 instructions on how a client application can fashion read-only query requests
 and send them to the server. These instructions can be as simple as a +rel+
@@ -529,7 +531,7 @@ Now our Cj response includes not just +items+ but also machine-readable +queries
 read-only requests to the server. But what if we want to tell clients that they can create new +items+ and/or edit the
 existing +items+? For that, we need to add a Write Template to the response.
 
-=== Part 4: Adding a Write Template ===
+== Adding a Write Template ==
 Another optional portion of a valid Cj response is the +template+ element. This is a machine-readable set of instructions
 on how to craft a valid POST (create) or PUT (update) request to the server. The rules for writing data to servers using
 Cj are very similar to the rules for the http://tools.ietf.org/html/rfc5023[Atom Publishling Protocol (RFC5023)].
@@ -673,7 +675,7 @@ This fills out the most common elements of a Cj server response. They include:
  . The +queries+ array, and
  . The +template+ object
  
-==== But What if there is only One +Item+? ====
+=== But What if there is only One +Item+? ===
 It is important to keep in mind that *all* Cj responses are sent as 'collections'. There is no special representation for
 responses that contain only one +item+. For example, if a client application activated the +href+ property for the 
 first +item+ in the list (http://localhost:1337/mildred), the server should response should look like this:
@@ -748,7 +750,7 @@ Note that the response still begins with +collection+ and includes all the other
 
 There is one more important part of a valid Cj server response to cover in this tutorial: the +error+ object.
 
-=== Part 5: Reporting Errors to the Client ===
+== Reporting Errors to the Client ==
 In cases where the client has sent an invalid request or the server has a
 problem handling the request, you can return a Cj response with an +error+
 element. This is a standard way to communicate error details (beyond the
@@ -802,7 +804,7 @@ Note that, like all other Cj responses, the Error Response is a complete Cj docu
 It is up to the server to decide which elements will be returned. It is the client's responsibility to make sure to 
 look for, and recognize, the +error+ object when it appears in a response.
 
-=== Summary ===
+== Summary ==
 In this tutorial you learned how a server can create a valid Cj response by working through a step-by-step process
 that includes:
 
