@@ -1,0 +1,806 @@
+= Collection+JSON Tutorials =
+:Author: Mike Amundsen
+:Email: mamund@yahoo.com
+
+== Generating a Cj Response from a Server ==
+In this short tutorial you'll get a 'walk-through' (in nodejs) of how to
+generate a valid Collection+JSON (Cj) response from a server. This is a 
+very simple example that leaves out a number of functional elements of the 
+server in order to focus on the process of generating a valid Cj response.
+This tutorial takes you through five steps to crafting a valid Cj response
+from a server. Actually, there are four basic steps and one added section
+that covers how to communicate error details to client apps.
+
+[NOTE]
+=======================
+This tutorial does not cover how a client application accepts and processes a Cj response. This tutorial only
+covers the basics of generating valid Cj responses from a 'server'. Details on client-side processing of Cj
+responses will be covered in another tutorial.
+=======================
+
+=== Before We Get Started ===
+First, since this tutorial is written in http://nodejs.org[nodejs], there is a bit
+of housekeeping code that is needed to get the project up and running. Below
+is a shell script that handles the basics of a small nodejs server application.
+
+.NodeJS Project Shell
+----
+var url = require('url');
+var http = require('http');
+var port = process.env.PORT||1337;
+
+
+var path = '';
+var base = '';
+var cType = 'application/vnd.collection+json';
+var cj = {};
+var friends = [];
+var pathfilter = '/favicon.ico /sortbyemail /sortbyname /filterbyname';
+
+function handler(req, res) {
+    base = 'http://' + req.headers.host;
+    path = url.parse(req.url).pathname;
+    if(pathfilter.indexOf(path)!==-1) {
+        path = '/';
+    }
+
+    res.writeHead(200, 'OK', {'content-type':cType});
+    res.end(JSON.stringify(cj));
+}
+
+http.createServer(handler).listen(port);
+----
+
+[NOTE]
+=================================
+Note that the
+content-type (+cType+) value is set to +application/vnd.collection+json+. This is the media type identifier 
+for Collection+JSON registered with the http://www.iana.org/assignments/media-types/application/vnd.collection+json[IANA].
+Servers should always output valid Cj resaponses using this content-type identifier.
+=================================
+
+The code above sets up a listener on the available port and responds with an empty object for now. 
+
+==== Adding some Friends ====
+The next step is to get some data to work with. For our example, we'll use a list of friends (name, email, and blog address).
+To keep things simple, we'll store the friends in memory. Usually this kind of data would be in some external
+storage such as a file system, local database or remote store. But, in our case, the in-memory data will work
+just fine.
+
+Below is the added function (+getFriends+) that loads the data into memory and the modified +handler+ routine 
+that makes the call to +getFriends+ when the listener starts up.
+
+.Adding Friends
+----
+var url = require('url');
+var http = require('http');
+var port = process.env.PORT||1337;
+
+var path = '';
+var base = '';
+var cType = 'application/vnd.collection+json';
+var cj = {};
+var friends = [];
+var pathfilter = '/favicon.ico /sortbyemail /sortbyname /filterbyname';
+
+function handler(req, res) {
+    base = 'http://' + req.headers.host;
+    path = url.parse(req.url).pathname;
+    if(pathfilter.indexOf(path)!==-1) {
+        path = '/';
+    }
+
+    getFriends();
+    
+    res.writeHead(200, 'OK', {'content-type':cType});
+    res.end(JSON.stringify(cj));
+}
+
+// actual data to render
+// usually kept in external storage
+function getFriends() {
+    var item = {};
+
+    friends = [];
+
+    item = {};
+    item.name = 'mildred';
+    item.email = 'mildred@example.com';
+    item.blog = 'http://example.com/blogs/mildred';
+    friends.push(item);
+
+    item = {};
+    item.name = 'mike';
+    item.email = 'mike@example.com';
+    item.blog = 'http://example.com/blogs/mike';
+    friends.push(item);
+
+    item = {};
+    item.name = 'mary';
+    item.email = 'mary@example.com';
+    item.blog = 'http://example.com/blogs/mary';
+    friends.push(item);
+
+    item = {};
+    item.name = 'mark';
+    item.email = 'mark@example.com';
+    item.blog = 'http://example.com/blogs/mark';
+    friends.push(item);
+
+    item = {};
+    item.name = 'muffin';
+    item.email = 'muffin@example.com';
+    item.blog = 'http://example.com/blogs/muffin';
+    friends.push(item);
+}
+
+http.createServer(handler).listen(port);
+----
+
+Now we have enough starter material in nodejs to focus on the Cj-specific aspects of this tutorial. The creation of 
+a valid Cj response skeleton, rendering data as valid Cj +items+, and the optional rendering of +queries+ and a
++template+.
+
+=== Part 1: The Cj Skeleton ===
+While it's not a requirement, setting up the basic 'skeleton' of a valid Cj response is a good idea.
+This is the output that is used for every Cj response and will come in handy as a guide or starter template when responding to requests.
+
+Refering to the http://amundsen.com/media-types/collection/format/#objects-collection[Collection+JSON documentation],
+you can see the standard response contains a couple properties (+href+ and +version+) and one or more additional arrays (+links+, +items+, and +queries+) or objects (+template+, +error+). 
+
+.Format of Collection+JSON Responses
+----
+// sample collection object
+{
+  "collection" :
+  {
+    "version" : "1.0",
+    "href" : URI,
+    "links" : [ARRAY],
+    "items" : [ARRAY],
+    "queries" : [ARRAY],
+    "template" : {OBJECT},
+    "error" : {OBJECT}
+  }
+}
+----
+We'll got through all of these in this tutorial. But for this section, we'll build up a simple skeleton of these
+elements to use as a 'starter' when generating responses. Below is a single method that creates this skeleton.
+
+.Creating a Cj Response Skeleton
+----
+// the basic template for all Cj responses
+function createCjTemplate() {
+    cj.collection = {};
+    cj.collection.version = "1.0";
+    cj.collection.href = base + path;
+
+    cj.collection.links = [];
+    cj.collection.links.push({'rel':'home', 'href' : base});
+
+    cj.collection.items = [];
+    cj.collection.queries = [];
+    cj.collection.template = {};
+}
+----
+
+Then we add the +createCjTemplate+ call to the +handler+ routine at the top of our program:
+
+.Adding +createCjTemplate+ to the +handler+ Routine
+----
+function handler(req, res) {
+    base = 'http://' + req.headers.host;
+    path = url.parse(req.url).pathname;
+    if(pathfilter.indexOf(path)!==-1) {
+        path = '/';
+    }
+
+    getFriends();
+    createCjTemplate();
+    
+    res.writeHead(200, 'OK', {'content-type':cType});
+    res.end(JSON.stringify(cj));
+}
+----
+
+And, when the server is running, the response looks like this:
+
+.Server Response for Cj Skeleton
+----
+200 OK HTTP/1.1
+Content-Type: application/vnd.collection+json
+Length: XXX
+
+{
+  collection: {
+    version: "1.0",
+    href: "http://localhost:1337/",
+    links: [
+      {
+        rel: "home",
+        href: "http://localhost:1337"
+      }
+    ],
+    items: [],
+    queries: [],
+    template: {}
+  }
+}
+----
+[NOTE]
+===========================
+The use of the +'home'+ link relation is not required by the Cj sepcifications, but it is a handy one to use. This
+is a link that points to the root of the service. It allows client applications to locate the initial starting point
+of the service not matter where they are in the workflow of any Cj application.
+===========================
+
+So that's a solid start. We have a server that returns a valid (but currently rather empty) Cj response whenever
+a client make a request. Now it's time to build up the rest of the representation.
+
+=== Part 2: Adding Items ===
+Once the basic skeleton is working, you can add items to the response
+representation. Typically these are your primary data elements (or objects)
+that you wish to return to the requesting client. It doesn't matter how (or where)
+this data is stored. It is the job of the server to take that data and
+render it as valid Cj +items+.
+
+The most direct way to go about this is to gather up the data you wish to render (in our case this is the list
+of friends) and "walk through" the list and add the properties to the Cj skeleton's +items+ array. The 
+http://amundsen.com/media-types/collection/format/#arrays-items[Cj documentation] says a single +item+ looks like this:
+
+.A Single Cj Item
+----
+{
+  "href" : URI,
+  "data" : [ARRAY],
+  "links" : [ARRAY]
+}
+----
+
+Each item as an +href+ property and (optionally) an array of +data+ elements and/or +link+ elements. For our
+example, we'll render the +name+ and +email+ properties of our +friends+ collection as Cj +data+ elements and the
++blog+ property as a Cj +link+ element. Below is the method that handles this mapping of internal storage to
+the Cj representation:
+
+.Mapping Internal Storage to Cj Items
+----
+// render data object (friends) as valid Cj items
+function renderItems(coll) {
+    var i, x, item, p, d, l;
+
+    for(i=0, x=coll.length;i<x;i++) {
+        if(path==='/' || path==='/'+coll[i].name) {
+            item = {};
+            item.href = base + '/' + coll[i].name;
+            item.data = [];
+            item.links = [];
+        
+            d = 0;
+            l = 0
+            for(p in friends[i]) {
+                if(p==='blog') {
+                    item.links[l++] = {
+                      'rel' : 'alternate',
+                      'href' : friends[i][p],
+                      'prompt' : p
+                    }
+                }
+                else {
+                    item.data[d++] = {
+                        'name' : p, 
+                        'value' : friends[i][p],
+                        'prompt' : p
+                    }
+                }               
+            }
+            cj.collection.items.push(item);
+        }
+    }
+}
+----
+
+Next, all we need to do is add this function call to the top-level +handler+ routine in our nodejs program:
+
+.Adding +renderItems+ to the +handler+ Routine
+----
+function handler(req, res) {
+    base = 'http://' + req.headers.host;
+    path = url.parse(req.url).pathname;
+    if(pathfilter.indexOf(path)!==-1) {
+        path = '/';
+    }
+
+    getFriends();
+    createCjTemplate();
+    
+    renderItems();
+    
+    res.writeHead(200, 'OK', {'content-type':cType});
+    res.end(JSON.stringify(cj));
+}
+----
+
+And now, when a client makes a request to the server, the response looks like this (abbreviated here to save space):
+
+.Cj Response from Server with +Items+
+----
+200 OK HTTP/1.1
+Content-Type: application/vnd.collection+json
+Length: XXX
+
+{
+  collection: {
+    version: "1.0",
+    href: "http://localhost:1337/",
+    links: [
+      {
+        rel: "home",
+        href: "http://localhost:1337"
+      }
+    ],
+    items: [
+      {
+        href: "http://localhost:1337/mildred",
+        data: [
+          {
+            name: "name",
+            value: "mildred",
+            prompt: "name"
+          },
+          {
+            name: "email",
+            value: "mildred@example.com",
+            prompt: "email"
+          }
+        ],
+        links: [
+          {
+            rel: "alternate",
+            href: "http://example.com/blogs/mildred",
+            prompt: "blog"
+          }
+        ]
+      },
+      // more items go here...
+    ],
+    queries: [],
+    template: {}
+  }
+}
+----
+
+Now that we have the server rendering valid +items+, we can turn to some optional sections in a Cj response:
++queries+ and the +template+.
+
+=== Part 3: Adding Queries ===
+Optionally, you can add +queries+ to your response. These are machine-readable
+instructions on how a client application can fashion read-only query requests
+and send them to the server. These instructions can be as simple as a +rel+
+and +href+ that the client app can acticvate. You can also describe more
+involved queries by including a +data+ array that describes individual query
+parameters that clients can use when sending their request.
+
+For our example, let's support three possible queries:
+
+ . *SortByName* : This will return the +items+ as a sorted list by the +name+ property.
+ . *SortByEmail* : This will return the +items+ as a sorted list by the +email+ property.
+ . *FilterByName* : This will return a sub-set of the +items+ based on a query parameter that matches the +name+ property.
+ 
+Now that we have that settled, we need to render that information in machine-readable form using the Cj +queries+ section
+of the response. Here's the code that will handle that:
+
+.Rendering Valid +queries+ within a Cj Response
+----
+// render supported queries as valid Cj query elements
+function renderQueries() {
+    var query = {};
+
+    query = {};
+    query.rel = 'collection sort';
+    query.prompt = 'Sort by Name';
+    query.href = base + '/sortbyname';
+    cj.collection.queries.push(query);
+
+    query = {};
+    query.rel = 'collection filter';
+    query.prompt = 'Filter by Name';
+    query.href = base + '/filterbyname';
+    query.data = [];
+    query.data[0] = {
+        'name' : 'name',
+        'value' : '',
+        'prompt' : 'Name'
+    }
+    cj.collection.queries.push(query);
+
+    query = {};
+    query.rel = 'collection sort';
+    query.prompt = 'Sort by Email';
+    query.href = base + '/sortbyemail';
+    cj.collection.queries.push(query);
+}
+----
+
+And, of course, we need to add this call to the top-level +handler+ routine:
+
+.Adding the +renderQueries+ call to the +handler+ routine
+----
+function handler(req, res) {
+    base = 'http://' + req.headers.host;
+    path = url.parse(req.url).pathname;
+    if(pathfilter.indexOf(path)!==-1) {
+        path = '/';
+    }
+
+    getFriends();
+    createCjTemplate();
+    
+    renderItems();
+    renderQueries();
+    
+    res.writeHead(200, 'OK', {'content-type':cType});
+    res.end(JSON.stringify(cj));
+}
+----
+
+Now, when a client makes a request to the server, the response representation looks like this:
+
+.Server Response including valid Cj Queries Section
+----
+200 OK HTTP/1.1
+Content-Type: application/vnd.collection+json
+Length: XXX
+
+{
+  collection: {
+    version: "1.0",
+    href: "http://localhost:1337/",
+    links: [
+      {
+        rel: "home",
+        href: "http://localhost:1337"
+      }
+    ],
+    items: [
+      {
+        href: "http://localhost:1337/mildred",
+        data: [
+          {
+            name: "name",
+            value: "mildred",
+            prompt: "name"
+          },
+          {
+            name: "email",
+            value: "mildred@example.com",
+            prompt: "email"
+          }
+        ],
+        links: [
+          {
+            rel: "alternate",
+            href: "http://example.com/blogs/mildred",
+            prompt: "blog"
+          }
+        ]
+      },
+      /// more items go here...
+    ],
+    queries: [
+      {
+        rel: "collection sort",
+        prompt: "Sort by Name",
+        href: "http://localhost:1337/sortbyname"
+      },
+      {
+        rel: "collection filter",
+        prompt: "Filter by Name",
+        href: "http://localhost:1337/filterbyname",
+        data: [
+          {
+            name: "name",
+            value: "",
+            prompt: "Name"
+          }
+        ]
+      },
+      {
+        rel: "collection sort",
+        prompt: "Sort by Email",
+        href: "http://localhost:1337/sortbyemail"
+      }
+    ],
+    template: {}
+  }
+}
+----
+
+Now our Cj response includes not just +items+ but also machine-readable +queries+ that clients can use to make additional
+read-only requests to the server. But what if we want to tell clients that they can create new +items+ and/or edit the
+existing +items+? For that, we need to add a Write Template to the response.
+
+=== Part 4: Adding a Write Template ===
+Another optional portion of a valid Cj response is the +template+ element. This is a machine-readable set of instructions
+on how to craft a valid POST (create) or PUT (update) request to the server. The rules for writing data to servers using
+Cj are very similar to the rules for the http://tools.ietf.org/html/rfc5023[Atom Publishling Protocol (RFC5023)].
+Essentially, there is an implicit agreement in Cj to support a CRUD-style (Create-Read-Update-Delete) pattern for any
++items+ in a response. You can read up on the details in the 
+http://amundsen.com/media-types/collection/format/#general[General Concepts] section of the Cj documentation.
+
+For our example, we can add a +template+ object to the response that provides a machine-readable description of how
+client apps can fashion a request body that represents an +item+ to add (POST) or update (PUT). In our case, we
+want to tell clients they can write three values: +name+, +email+, and +blog+. Here's the code that creates the
++template+ object:
+
+.Creating a +template+ Object for a Cj Response
+----
+// render write template (POST, PUT)
+function renderTemplate() {
+    var template = {};
+    var item = {};
+
+    template.data = [];
+    
+    item = {};
+    item.name = 'name';
+    item.value = '';
+    item.prompt = 'Name';
+    template.data.push(item);
+
+    item = {};
+    item.name = 'email';
+    item.value = '';
+    item.prompt = 'Email';
+    template.data.push(item);
+    
+    item = {};
+    item.name = 'blog';
+    item.value = '';
+    item.prompt= 'Blog';
+    template.data.push(item);
+
+    cj.collection.template = template;
+}
+----
+
+And then (as usual) we add the call to the +renderTemplate+ method to the top-level +handler+ routine:
+
+.Adding the +renderTemplate+ call to the +hander+ routine:
+----
+function handler(req, res) {
+    base = 'http://' + req.headers.host;
+    path = url.parse(req.url).pathname;
+    if(pathfilter.indexOf(path)!==-1) {
+        path = '/';
+    }
+
+    getFriends();
+  
+    createCjTemplate();
+    renderItems(friends);
+    renderQueries();
+    renderTemplate();
+
+    res.writeHead(200, 'OK', {'content-type':cType});
+    res.end(JSON.stringify(cj));
+}
+----
+
+Now, when a client makes a request to the server, the response includes instructions on creating or updating +items+
+
+.Valid Cj Server Response that includes a +template+ Object
+----
+200 OK HTTP/1.1
+Content-Type: application/vnd.collection+json
+Length: XXX
+
+{
+  collection: {
+    version: "1.0",
+    href: "http://localhost:1337/",
+    links: [
+      {
+        rel: "home",
+        href: "http://localhost:1337"
+      }
+    ],
+    items: [
+      {
+        href: "http://localhost:1337/mildred",
+        data: [
+          {
+            name: "name",
+            value: "mildred",
+            prompt: "name"
+          },
+          {
+            name: "email",
+            value: "mildred@example.com",
+            prompt: "email"
+          }
+        ],
+        links: [
+          {
+            rel: "alternate",
+            href: "http://example.com/blogs/mildred",
+            prompt: "blog"
+          }
+        ]
+      },
+      // more items go here...
+    ],
+    queries: [
+      // queries go here...
+    ],
+    template: {
+      data: [
+        {
+          name: "name",
+          value: "",
+          prompt: "Name"
+        },
+        {
+          name: "email",
+          value: "",
+          prompt: "Email"
+        },
+        {
+          name: "blog",
+          value: "",
+          prompt: "Blog"
+        }
+      ]
+    }
+  }
+}
+----
+
+This fills out the most common elements of a Cj server response. They include:
+
+ . The top-level properties: +href+ and +version
+ . The top-level +links+ array
+ . The +items+ array
+ . The +queries+ array, and
+ . The +template+ object
+ 
+==== But What if there is only One +Item+? ====
+It is important to keep in mind that *all* Cj responses are sent as 'collections'. There is no special representation for
+responses that contain only one +item+. For example, if a client application activated the +href+ property for the 
+first +item+ in the list (http://localhost:1337/mildred), the server should response should look like this:
+
+.Valid Cj Server Response when there is only One +Item+
+----
+200 OK HTTP/1.1
+Content-Type: application/vnd.collection+json
+Length: XXX
+
+{
+  collection: {
+    version: "1.0",
+    href: "http://localhost:1337/mildred",
+    links: [
+      {
+        rel: "home",
+        href: "http://localhost:1337"
+      }
+    ],
+    items: [
+      {
+        href: "http://localhost:1337/mildred",
+        data: [
+          {
+            name: "name",
+            value: "mildred",
+            prompt: "name"
+          },
+          {
+            name: "email",
+            value: "mildred@example.com",
+            prompt: "email"
+          }
+        ],
+        links: [
+          {
+            rel: "alternate",
+            href: "http://example.com/blogs/mildred",
+            prompt: "blog"
+          }
+        ]
+      }
+    ],
+    queries: [
+      // queries go here...
+    ],
+    template: {
+      data: [
+        {
+          name: "name",
+          value: "",
+          prompt: "Name"
+        },
+        {
+          name: "email",
+          value: "",
+          prompt: "Email"
+        },
+        {
+          name: "blog",
+          value: "",
+          prompt: "Blog"
+        }
+      ]
+    }
+  }
+}
+----
+
+Note that the response still begins with +collection+ and includes all the other elements of a valid Cj response.
+
+There is one more important part of a valid Cj server response to cover in this tutorial: the +error+ object.
+
+=== Part 5: Reporting Errors to the Client ===
+In cases where the client has sent an invalid request or the server has a
+problem handling the request, you can return a Cj response with an +error+
+element. This is a standard way to communicate error details (beyond the
+basic protocol information like 404, 410, etc.) to clients. 
+
+When the server wants to report an error to the client, the response should include the +error+ object populated
+with server-specific information that will help the client (or the human driveing the client) to recognize
+the problem and, if possible, make adjustments and try the request again. The Cj documentation for the
+http://amundsen.com/media-types/collection/format/#objects-error[Error Object] says that it looks like this:
+
+.The Cj +error+ Object
+----
+"error" :
+{
+  "title" : STRING,
+  "code" : STRING,
+  "message" : STRING  
+}
+----
+
+Servers can use the three properties to hold details about the error and even instructions on how clients can
+resolve the problem and try again. For example, if the client application attempts to update an +item+ that does
+not exist, the error response might look like this:
+
+.A Server Response that includes the Cj +error+ Object
+----
+404 Not Found HTTP/1.1
+Content-Type: application/vnd.collection+json
+Length: XXX
+
+{
+  collection: {
+    version: "1.0",
+    href: "http://localhost:1337/mildred",
+    links: [
+      {
+        rel: "home",
+        href: "http://localhost:1337"
+      }
+    ],
+    "error" : {
+      "title" : "Unable to update item",
+      "code" : "Internal Error Code x084D",
+      "message" : "That item does not exist. Check the URL and try again."  
+    }
+  }
+}
+----
+
+Note that, like all other Cj responses, the Error Response is a complete Cj document starting with the +collection+ element. It is valid, by the way, to return other response elements including +links+, +items+, +queries+, and +template+.
+It is up to the server to decide which elements will be returned. It is the client's responsibility to make sure to 
+look for, and recognize, the +error+ object when it appears in a response.
+
+=== Summary ===
+In this tutorial you learned how a server can create a valid Cj response by working through a step-by-step process
+that includes:
+
+ * Creating an internal Cj template as a skeleton or guide for emitting responses
+ * Adding the +items+ array by mapping internal stored data to Cj +items+ 
+ * Adding optional machine-readable +queries+ that describe ways clients can make additional requests to the server
+ * Adding an optional Write Template (+template+) that describes how clients can fashion a create (POST) or update (PUT) request to the server, and
+ * Reporting errors to the client using the Cj +error+ object.
+ 
+ 
+
