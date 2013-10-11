@@ -7,16 +7,26 @@ In this short tutorial you'll get a 'walk-through' (in nodejs) of how to
 generate a valid Collection+JSON (Cj) response from a server. This is a 
 very simple example that leaves out a number of functional elements of the 
 server in order to focus on the process of generating a valid Cj response.
-This tutorial takes you through five steps to crafting a valid Cj response
-from a server. Actually, there are four basic steps and one added section
-that covers how to communicate error details to client apps.
 
-[NOTE]
+[WARNING]
 =======================
 This tutorial does not cover how a client application accepts and processes a Cj response. This tutorial only
 covers the basics of generating valid Cj responses from a 'server'. Details on client-side processing of Cj
 responses will be covered in another tutorial.
 =======================
+
+This tutorial takes you through five steps to crafting a valid Cj response
+from a server. Actually, there are four basic steps and one added section
+that covers how to communicate error details to client apps.
+
+[NOTE]
+=================
+The source code for this tutorial along with the original tutorial text can
+be found in the https://github.com/collection-json/cj-web[cj-web] repository on 
+http://github.com[GitHub]. Feel free to clone the project, register issues, and
+submit PRs to help improve the tutorials. 
+=================
+
 
 === Before We Get Started ===
 First, since this tutorial is written in http://nodejs.org[nodejs], there is a bit
