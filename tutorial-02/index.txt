@@ -1,0 +1,40 @@
+////
+2013-10 mamund : source file for tutorials
+////
+
+= Collection+JSON Tutorials : Consuming a Cj Response from a Client
+:Author: Mike Amundsen
+:Email: mamund@yahoo.com
+
+In this short tutorial you'll get a chance to see what it is like to 
+consume http://amundsen.com/media-types/collection/[Collection+JSON](Cj) 
+responses emitted by a server. This is a very brief example
+written as a console client in http://nodejs.org[nodejs]. This sample app focuses
+on the process of accepting, parsing, and rendering Cj responses and
+leaves out details of any complex full-screen rendering and other
+client-side processing.
+
+[WARNING]
+============
+This does not cover server-side generation of Cj responses. If you're
+looking for an example of coding for a 'server' you can check out
+the http://amundsen.com/media-types/tutorials/collection/tutorial-01.html[Generating 
+a Cj Response from a Server] tutorial.
+============
+
+Even though this tutorial illustrates a console client, it still covers the
+basics of writing client apps for the Cj hypermedia format. This includes:
+
+ . Accepting a Cj Response
+ . Handling Cj Items
+ . Handling Cj Queries
+ . Handling Cj Write Templates
+ . Handling Cj Error Responses
+
+ [NOTE]
+ ======
+ The source code for this tutorial along with the original tutorial text
+ can be found in the http://github.com/collection-json/cj-web[cj-web]
+ repo in http://github.com[Github]. Feel free to fork/clone the project, 
+ register issues, and issue PRs to help improve the tutorials repo.
+ ======
