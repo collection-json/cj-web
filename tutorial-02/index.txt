@@ -31,10 +31,25 @@ basics of writing client apps for the Cj hypermedia format. This includes:
  . Handling Cj Write Templates
  . Handling Cj Error Responses
 
- [NOTE]
- ======
+[NOTE]
+======
  The source code for this tutorial along with the original tutorial text
  can be found in the http://github.com/collection-json/cj-web[cj-web]
  repo in http://github.com[Github]. Feel free to fork/clone the project, 
  register issues, and issue PRs to help improve the tutorials repo.
- ======
+======
+
+== Getting Started ==
+
+== Accepting A Cj Response ==
+
+== Handling Cj Items ==
+
+== Handling Cj Queries ==
+
+== Handling Cj Write Templates ==
+
+== Handling Cj Error Responses ==
+
+== Summary ==
+
