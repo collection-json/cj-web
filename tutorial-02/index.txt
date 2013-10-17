@@ -40,6 +40,11 @@ basics of writing client apps for the Cj hypermedia format. This includes:
 ======
 
 == Getting Started ==
+Since this tutorial focuses on the client side handling of Cj responses, we'll
+need to connect to a server that emits valid Cj representations. To keep things
+really simple, there is a simple nodejs server app built just for this purpose.
+It is designed to simply emit static responses for use in coding and testing
+client apps.
 
 == Accepting A Cj Response ==
 
