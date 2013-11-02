@@ -32,29 +32,62 @@ basics of writing client apps for the Cj hypermedia format. This includes:
  . Handling Cj Error Responses
 
 [NOTE]
-======
- The source code for this tutorial along with the original tutorial text
- can be found in the http://github.com/collection-json/cj-web[cj-web]
- repo in http://github.com[Github]. Feel free to fork/clone the project, 
- register issues, and issue PRs to help improve the tutorials repo.
-======
+=================
+The source code for this tutorial along with the original tutorial text
+can be found in the http://github.com/collection-json/cj-web[cj-web]
+repo in http://github.com[Github]. Feel free to fork/clone the project, 
+register issues, and issue PRs to help improve the tutorials repo.
+=================
 
 == Getting Started ==
+We need to take care of a few things before we dig into the details of 
+writing a console client that can handle Cj responses. First, we need to
+identify a server we can use as we build the client and, second, we need to
+set up a basic client framework to use as starter material for writing our
+own client.
+
+=== Using the Tutorial-01 Server ===
 Since this tutorial focuses on the client side handling of Cj responses, we'll
 need to connect to a server that emits valid Cj representations. To keep things
 really simple, there is a simple nodejs server app built just for this purpose.
 It is designed to simply emit static responses for use in coding and testing
-client apps.
+client apps. We won't look at the server code now but, if you're interested, 
+you can find it in the http://github.com/collection-json/cj-web[cj-web] 
+repository. It's the server example built in 
+http://amundsen.com/media-types/tutorials/collection/tutorial-01.html[Generating 
+a Cj Response from a Server] tutorial.
+
+You can check out the code there to see how a server formats and emits valid
+Cj responses. We won't spend any time cover that here since there is already
+a tutorial article that covers the details. However, you will need to download
+and run the server on your local machine. 
+
+[WARNING]
+==========
+The example server created in the http://amundsen.com/media-types/tutorials/collection/tutorial-01.html[Generating 
+a Cj Response from a Server] tutorial is set to listen on local port 1337. 
+If you change that setting, you'll need to change all the corresponding code in 
+this client-side example, too.
+===========
+
+=== Creating the Browser Client Skeleton ===
+TK 
 
 == Accepting A Cj Response ==
+TK 
 
 == Handling Cj Items ==
+TK 
 
 == Handling Cj Queries ==
+TK 
 
 == Handling Cj Write Templates ==
+TK 
 
 == Handling Cj Error Responses ==
+TK 
 
 == Summary ==
+TK 
 
