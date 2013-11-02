@@ -31,9 +31,7 @@ function handler(req, res) {
     res.writeHead(200, 'OK', 
       {
         'Content-Type':cType, 
-        'Access-Control-Allow-Origin':'*', 
-        'Access-Control-Allow-Methods':'*', 
-        'Access-Control-Allow-Headers':'*'
+        'Access-Control-Allow-Origin':'*' 
       }
     );
     res.end(JSON.stringify(cj));
