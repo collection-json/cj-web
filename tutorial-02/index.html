@@ -677,7 +677,143 @@ this client-side example, too.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_creating_the_browser_client_skeleton">Creating the Browser Client Skeleton</h3>
-<div class="paragraph"><p>TK</p></div>
+<div class="paragraph"><p>First, let&#8217;s build up a small skeleton of HTML, JS, and CSS to confirm all is working correctly.
+This will give us the basic parts we need to complete the rest of the tasks for this tutorial and
+it will provide some background on how to build hypermedia clients for Cj servers.</p></div>
+<div class="sect3">
+<h4 id="_the_html_container">The HTML Container</h4>
+<div class="paragraph"><p>For this example, we&#8217;ll use HTML as a simple <em>container</em> for the rest of our work. This is not only
+way to build hypermedia clients for Cj, but it is one of the easiest. Below is all the HTML we need
+to get a working Cj client started:</p></div>
+<div class="listingblock">
+<div class="title">HTML Container for Cj Client</div>
+<div class="content">
+<pre><tt>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;title&gt;Tutorial-01 : Consuming a Cj Response from a Client&lt;/title&gt;
+    &lt;link rel="stylesheet" href="client.css" /&gt;
+    &lt;script src="client.js"&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Consuming a Cj Response from a Client&lt;/h1&gt;
+    &lt;div id="rawcj"&gt;&lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</tt></pre>
+</div></div>
+</div>
+<div class="sect3">
+<h4 id="_the_css_file">The CSS File</h4>
+<div class="paragraph"><p>We only need a small CSS file to start this example. It has only one declaration so far:</p></div>
+<div class="listingblock">
+<div class="title">CSS File for Cj Client</div>
+<div class="content">
+<pre><tt>#rawcj {
+  font-family: monospace;
+  white-space: pre;
+
+}</tt></pre>
+</div></div>
+</div>
+<div class="sect3">
+<h4 id="_the_js_file">The JS File</h4>
+<div class="paragraph"><p>The JS file <em>looks</em> rather complicated to start with, but that&#8217;s just because we need to add in
+support for doing direct HTTP (Ajax) requests within the script. The rest is very simple. Below is the
+code that sets up communicating with the running <a href="http://amundsen.com/media-types/tutorials/collection/tutorial-01.html">Generating
+a Cj Response from a Server</a> we built in Tutorial-01.</p></div>
+<div class="listingblock">
+<div class="title">Basic JS Scaffolding for a Cj Client</div>
+<div class="content">
+<pre><tt>// fire onload
+window.onload = function() {
+  var pg = null;
+  pg = cjClient();
+  pg.init();
+}
+
+// actual client coding
+cjClient = function() {
+
+  var g = {};
+  g.href = 'http://localhost:1337/';
+  g.contentType = 'application/collection+json';
+  g.data = null;
+
+  function init() {
+    getResponse(g.href);
+  }
+
+  // show just plain Cj response, no client-side parsing
+  function displayRawCj() {
+    var div;
+
+    div = document.getElementById('rawcj');
+    if(div) {
+      div.innerHTML = JSON.stringify(g.data, null, 2);
+    }
+    else {
+      alert('no rawcj');
+    }
+  }
+
+  function getResponse(href) {
+    var ajax;
+
+    ajax=new XMLHttpRequest();
+    if(ajax) {
+      ajax.onreadystatechange = function(){processResponse(ajax);};
+      ajax.open('get',href,false);
+      ajax.send(null);
+    }
+  }
+
+  function processResponse(ajax) {
+    if(ajax.readyState==4 || ajax.readyState==='complete') {
+      if(ajax.status===200 || ajax.status===204) {
+        g.data = JSON.parse(ajax.responseText);
+        displayRawCj();
+      }
+      else {
+        alert('*** ERROR: '+ajax.status+'\n'+ajax.statusText);
+      }
+    }
+  }
+
+  // register events and return
+  var that = {};
+  that.init = init;
+  return that;
+
+}</tt></pre>
+</div></div>
+<div class="paragraph"><p>Note that the code does only a couple things:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+Establish shared variables including the starting URL and the media type identifier to use with requests.
+</p>
+</li>
+<li>
+<p>
+Upon start up, perform a <tt>getResponse()</tt> operation to get a Cj representation from the server.
+</p>
+</li>
+<li>
+<p>
+The Ajax call registers the <tt>processResponse()</tt> routine in order to handle the (eventual) server response.
+</p>
+</li>
+<li>
+<p>
+The <tt>DisplayRawCj()</tt> routine is used to simply echo the server response into a single <tt>DIV</tt> tag on the screen.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>This is a simple way to test all the <em>'plumbing</em>' for the page; just to make sure all is working fine before we
+step into the details of handling Cj responses.</p></div>
+<div class="paragraph"><p>With this complete, we can start working a more complete and visually interesting hypermedia client for Cj responses.</p></div>
+</div>
 </div>
 </div>
 </div>
@@ -721,7 +857,7 @@ this client-side example, too.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2013-11-01 20:40:41 EDT
+Last updated 2013-11-01 21:32:18 EDT
 </div>
 </div>
 </body>
