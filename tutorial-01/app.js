@@ -28,7 +28,14 @@ function handler(req, res) {
     renderQueries();
     renderTemplate();
 
-    res.writeHead(200, 'OK', {'content-type':cType});
+    res.writeHead(200, 'OK', 
+      {
+        'Content-Type':cType, 
+        'Access-Control-Allow-Origin':'*', 
+        'Access-Control-Allow-Methods':'*', 
+        'Access-Control-Allow-Headers':'*'
+      }
+    );
     res.end(JSON.stringify(cj));
 }
 
