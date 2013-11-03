@@ -2,14 +2,14 @@
 2013-10 mamund : source file for tutorials
 ////
 
-= Collection+JSON Tutorials : Consuming a Cj Response from a Client
+= Collection+JSON Tutorials : Consuming a Cj Response from a Client =
 :Author: Mike Amundsen
 :Email: mamund@yahoo.com
 
 In this short tutorial you'll get a chance to see what it is like to 
 consume http://amundsen.com/media-types/collection/[Collection+JSON](Cj) 
 responses emitted by a server. This is a very brief example
-written as a console client in http://nodejs.org[nodejs]. This sample app focuses
+written as a simple HTML client in http://nodejs.org[nodejs]. This sample app focuses
 on the process of accepting, parsing, and rendering Cj responses and
 leaves out details of any complex full-screen rendering and other
 client-side processing.
@@ -25,7 +25,7 @@ a Cj Response from a Server] tutorial.
 Even though this tutorial illustrates a console client, it still covers the
 basics of writing client apps for the Cj hypermedia format. This includes:
 
- . Accepting a Cj Response
+ . Handling a Cj Response
  . Handling Cj Items
  . Handling Cj Queries
  . Handling Cj Write Templates
@@ -68,7 +68,7 @@ The example server created in the http://amundsen.com/media-types/tutorials/coll
 a Cj Response from a Server] tutorial is set to listen on local port 1337. 
 If you change that setting, you'll need to change all the corresponding code in 
 this client-side example, too.
-===========
+==========
 
 === Creating the Browser Client Skeleton ===
 First, let's build up a small skeleton of HTML, JS, and CSS to confirm all is working correctly.
@@ -183,15 +183,198 @@ cjClient = function() {
 Note that the code does only a couple things:
 
  . Establish shared variables including the starting URL and the media type identifier to use with requests.
- . Upon start up, perform a `getResponse()` operation to get a Cj representation from the server.
- . The Ajax call registers the `processResponse()` routine in order to handle the (eventual) server response.
+ . Upon start up, perform a `getResponse(href)` operation to get a Cj representation from the server.
+ . The Ajax call registers the `processResponse(ajax)` routine in order to handle the (eventual) server response.
  . The `DisplayRawCj()` routine is used to simply echo the server response into a single `DIV` tag on the screen.
  
-This is a simple way to test all the `plumbing' for the page; just to make sure all is working fine before we
-step into the details of handling Cj responses. With this accomplished, we can start working a more complete and visually interesting hypermedia client for Cj responses.
+image::images/tutorial-02-initial-test.png[width=840]
 
-== Accepting A Cj Response ==
-TK 
+This is a simple way to test all the ``plumbing'' for the page; just to make sure all is working fine before we
+step into the details of handling Cj responses. To test this app, simply load the `client.html` page in a browser. You should see a title and the exact Cj response sent by the server. If you see that, you're all set. With this accomplished, we can start working a more complete and visually interesting hypermedia client for Cj responses.
+
+== Handling A Cj Response ==
+For this tutorial, handling Cj Response for a hypermedia client boils down to the following:
+
+ . Make an HTTP request to the desired URL
+ . Convert the response into an internal Cj object model
+ . Render that Cj object model as HTML in the browser
+
+This, essentially, means creating a Cj parser for HTML clients. Starting this takes a bit of up front work, but
+the good news is all the work will be re-usable for this and any other HTML client that you want to build for
+Cj servers.
+
+=== Make an HTTP Request to the Desired URL ===
+We already got this working in our test case earlier in this tutorial. but it's worth going over quickly again. The `getResponse(href)` routine uses the `href` argument to make an HTTP call to the designated server
+and passes control to the `processResponse(ajax)` routine to handle the response. Most of the time, the 
+response will be a `200 OK` along with a Cj payload. If not, the code handles the error condition by 
+throwing up an alert box.
+
+.Make an HTTP Request
+----
+  function getResponse(href) {
+    var ajax;
+
+    ajax=new XMLHttpRequest();
+    if(ajax) {
+      ajax.onreadystatechange = function(){processResponse(ajax);};
+      ajax.open('get',href,false);
+      ajax.send(null);
+    }   
+  }
+  
+  function processResponse(ajax) {
+    if(ajax.readyState==4 || ajax.readyState==='complete') {
+      if(ajax.status===200 || ajax.status===204) {
+        g.data = JSON.parse(ajax.responseText);
+        displayRawCj();
+      }
+      else {
+        alert('*** ERROR: '+ajax.status+'\n'+ajax.statusText);
+      }
+    }
+  }
+----
+
+[WARNING]
+=========
+This example client only handles `GET` requests so the `getResponse(href)` routine is very simple. In a
+fully-functioning Cj client, the code will need to handle `GET, POST, PUT` and `DELETE` requests. 
+=========
+
+=== Convert the response into an internal Cj object model ===
+Once you have the response, it's time to convert it into something the client can use. In our case, we'll
+convert the Cj response directly into a Javascript object tree. This is already handled for us in the test 
+code by the following line:
+
+.Convert the response
+----
+  g.data = JSON.parse(ajax.responseText);
+----
+
+This gives us an internal representation of the Cj response that we can use to create a visual rendering 
+of the Cj representation.
+
+=== Render that Cj object model as HTML in the browser ===
+For this first example, we'll render only the top-most elements of the Cj representation:
+
+ * the version, 
+ * the root href, and
+ * the top-level links collection
+ 
+To do this, we'll create some helper functions in our client app.
+
+==== The getVersion() Helper ====
+This returns the declared version of the Cj response or, if none is included, returns "0.0".
+
+.getVersion()
+----
+  function getVersion(data) {
+    return (data.collection.version?data.collection.version:'0.0');
+  }
+----
+
+==== The getRootUrl() Helper ====
+This returns the root URL of the Cj response or, if none is included, returns a blank string.
+
+.getRootUrl()
+----
+  function getRootUrl(data) {
+    return (data.collection.href?data.collection.href:'');  
+  }
+----
+
+==== the getLink(cjLink) Helper ====
+This returns an HTML object for the Cj link element passed into the function. This is a rather smart routine, 
+too. If `link.render='image'` then the routine returns a fully-populared HTML `img` control. Otherwise the
+routine returns a fully-populated HTML `a` control.
+
+.getLink(cjLink)
+----
+  function getLink(link) {
+    var rtn;
+
+    if(link.render && link.render==='image') {
+      rtn = document.createElement('img');
+      rtn.src = (link.href?link.href:'#');
+      rtn.className = (link.rel?link.rel:'');
+      rtn.alt = (link.prompt?link.prompt:rtn.src);
+      rtn.title = rtn.alt;
+    }
+    else {
+      rtn = document.createElement('a');
+      rtn.href = (link.href?link.href:'#');
+      rtn.rel = (link.rel?link.rel:'');
+      rtn.appendChild(document.createTextNode((link.prompt?link.prompt:rtn.rel)));
+      rtn.title = rtn.rel;
+    }
+    return rtn;  
+  }
+----
+
+[NOTE]
+======
+The example response for this tutorial does not include any elements where the `link.render='image'` but
+other examples later will. 
+======
+
+==== Putting it all together ====
+Now that we have all the helpers we need for this task, we can write a single routine that uses them to
+render the top-level Cj response information in the HTML browser.
+
+.handleCjResponse()
+----
+  function handleCjResponse() {
+    var div, links, i, x, ul, li, a;
+
+    // show version and rootUrl
+    div = document.getElementById('rawcj');
+    if(div) {
+      div.innerHTML = '';
+      div.innerHTML = 'Version: ' + getVersion(g.data) + '<br />';
+      div.innerHTML += 'RootURL: ' + getRootUrl(g.data);
+    }
+
+    // add any top-level links
+    if(g.data.collection.links) {
+      links = g.data.collection.links;
+
+      ul = document.createElement('ul');
+      ul.className = 'topLinks';
+
+      for(i=0,x=links.length;i<x;i++) {
+        a = getLink(links[i]);
+        li = document.createElement('li');
+        li.appendChild(a);
+        ul.appendChild(li);
+      }
+      div.appendChild(ul);
+    }
+  }
+----
+
+Next we add a call to `handleCjResponse()` in the `processResponse(ajax)` routine (right after the `displayRawCj()` line. Now `processResponse(ajax)` looks like this:
+
+.Updated processResponse()
+----
+  function processResponse(ajax) {
+    if(ajax.readyState==4 || ajax.readyState==='complete') {
+      if(ajax.status===200 || ajax.status===204) {
+        g.data = JSON.parse(ajax.responseText);
+        displayRawCj();
+        handleCjResponse();
+      }
+      else {
+        alert('*** ERROR: '+ajax.status+'\n'+ajax.statusText);
+      }
+    }
+  }
+----
+
+Now, when you load your `client.html` page in the browser, it displays the Cj version, Cj root URL, and the ``home'' link.
+
+image::images/tutorial-02-handling-cj-response.png[width=840]
+
+Now that we can handle the basic information in a Cj response and have an idea of how to build helper functions, the next step is to handle the `item` collection in Cj responses and render them in HTML.
 
 == Handling Cj Items ==
 TK 
