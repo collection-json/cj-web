@@ -1,5 +1,5 @@
 ////
-2913-10 (mamund) : source for tutorial article
+2013-10 (mamund) : source for tutorial article
 ////
 
 = Collection+JSON Tutorials : Generating a Cj Response from a Server =
